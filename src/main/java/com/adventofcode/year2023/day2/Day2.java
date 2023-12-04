@@ -1,7 +1,6 @@
 package com.adventofcode.year2023.day2;
 
 import com.adventofcode.DayMode;
-import com.adventofcode.year2023.day1.Day1;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,7 +14,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 public class Day2 {
-    private static final Logger logger = LogManager.getLogger(Day1.class);
+    private static final Logger logger = LogManager.getLogger(Day2.class);
 
     private static final String RED = "red";
     private static final String GREEN = "green";
@@ -30,12 +29,10 @@ public class Day2 {
         part1CubeSizes = Collections.unmodifiableMap(cubeSizes);
     }
 
-    private DayMode mode;
     private int possibleGameIdsTotal;
     private int powersTotal;
 
-    public Day2(String filename, DayMode mode) {
-        this.mode = mode;
+    public Day2(String filename) {
         processFile(filename);
     }
 
