@@ -39,18 +39,25 @@ public class Day1 {
             regex = "([\\d]|one|two|three|four|five|six|seven|eight|nine)";
         }
         Pattern p = Pattern.compile(regex);
-        Matcher m = p.matcher(line);
 
+        int index = 0;
         int match = 0;
         char first = '0', last = '0';
-        while (m.find()) {
-            match++;
-            String digitStr = m.group();
-            logger.debug("Match: [" + match + "] is: [" + digitStr + "]");
-            if (1 == match) {
-                first = toChar(digitStr);
+        while (index < line.length()) {
+            Matcher m = p.matcher(line.substring(index));
+            if (m.find()) {
+                match++;
+                String digitStr = m.group();
+                logger.debug("Match: [" + match + "] is: [" + digitStr + "]");
+                if (1 == match) {
+                    first = toChar(digitStr);
+                }
+                last = toChar(digitStr);
+
+                index += m.start() + 1;
+            } else {
+                break;
             }
-            last = toChar(digitStr);
         }
         logger.debug("First: [" + first + "], Last: [" + last + "]");
 

@@ -1,9 +1,8 @@
-package com.adventofcode.year2023;
+package com.adventofcode.year2023.day1;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.adventofcode.DayMode;
-import com.adventofcode.year2023.day1.Day1;
 import org.junit.jupiter.api.Test;
 
 public class Day1Test {
@@ -45,6 +44,6 @@ public class Day1Test {
         String filename = "src/main/resources/2023day1input.txt";
         Day1 day1 = new Day1(filename, DayMode.PART2);
 
-        assertEquals(54489, day1.getTotal(), "Total is wrong");
+        assertEquals(54473, day1.getTotal(), "Total is wrong");
     }
 }
