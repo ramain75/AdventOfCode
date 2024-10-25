@@ -1,6 +1,5 @@
 package com.adventofcode.year2016.day5;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
