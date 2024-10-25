@@ -1,5 +1,6 @@
 package com.adventofcode.year2016.day7;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -8,7 +9,8 @@ import java.util.stream.Collectors;
 
 public class TwentySixteenDay7 {
 
-    static boolean hasIpABBA(String ip) {
+    // ABBA == Autonomous Bridge Bypass Annotation
+    static Predicate<String> hasIpAbba = ip -> {
         Predicate<String> isABBA = s -> s.length() == 4
                 && s.charAt(0) == s.charAt(3) && s.charAt(1) == s.charAt(2)
                 && s.charAt(0) != s.charAt(1)
@@ -41,5 +43,9 @@ public class TwentySixteenDay7 {
         }
 
         return foundABBAOutsideBrackets;
+    };
+
+    static long countIPsSupportingTLS(String input) {
+        return Arrays.stream(input.split(System.getProperty("line.separator"))).filter(hasIpAbba).count();
     }
 }
