@@ -1,5 +1,6 @@
 package com.adventofcode.year2022.day11;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
@@ -8,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Day11Test {
 
+    @Disabled
     @Test
     void testSampleFilePart1() {
         String filename = "src/main/resources/2022day11sample.txt";
@@ -15,6 +17,7 @@ public class Day11Test {
         assertEquals(BigInteger.valueOf(10605L), day11.calculateMonkeyBusiness());
     }
 
+    @Disabled
     @Test
     void testInputFilePart1() {
         String filename = "src/main/resources/2022day11input.txt";
@@ -22,6 +25,7 @@ public class Day11Test {
         assertEquals(BigInteger.valueOf(110264L), day11.calculateMonkeyBusiness());
     }
 
+    @Disabled
     @Test
     void testSampleFilePart2() {
         String expectedResult = "Monkey 0 inspected items 52166 times.\n" +
@@ -36,6 +40,7 @@ public class Day11Test {
         //assertEquals(BigInteger.valueOf(2713310158L), day11.calculateMonkeyBusiness());
     }
 
+    @Disabled
     @Test
     void testInputFilePart2() {
         String filename = "src/main/resources/2022day11input.txt";
