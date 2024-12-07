@@ -48,17 +48,19 @@ public class Day6 {
     record Point(int x, int y) {}
     record Guard(Point point, Direction facing) {}
 
-    // What is the layout of the lab, and does it have an obstruction?
-    private final Map<Point, Boolean> labGrid = new HashMap<>();
+    // What is the layout of the lab, does it have an obstruction (#), or has it been patrolled (^|-+)?
+    private final Map<Point, Character> labGrid = new HashMap<>();
 
     // Where has the guard been?
-    private final Set<Point> distinctGuardPositions = new HashSet<>();
+    private final Map<Point, Set<Direction>> distinctGuardPositions = new HashMap<>();
 
     // Where is the guard now?
     private Guard guard = null;
 
     // Size of the lab
     private final Point bottomRightPosition;
+
+    private final List<Point> stuckInALoopPoints = new ArrayList<>();
 
     public Day6(String input) {
         String[] rows = input.split("\\r?\\n");
@@ -67,14 +69,16 @@ public class Day6 {
         for (int y = 0; y < rows.length; y++) {
             for (int x = 0; x < rows[y].length(); x++) {
                 latestPositionMapped = new Point(x, y);
-                labGrid.put(latestPositionMapped, rows[y].charAt(x) == '#');
+                labGrid.put(latestPositionMapped, rows[y].charAt(x));
                 Direction possibleGuardDirection = Direction.getDirection(rows[y].charAt(x));
                 if (possibleGuardDirection != null) {
                     if (guard != null) {
                         throw new RuntimeException("More than one guard found!");
                     }
                     guard = new Guard(latestPositionMapped, possibleGuardDirection);
-                    distinctGuardPositions.add(latestPositionMapped);
+                    Set<Direction> directionSet = distinctGuardPositions.getOrDefault(latestPositionMapped, new HashSet<>());
+                    directionSet.add(possibleGuardDirection);
+                    distinctGuardPositions.put(latestPositionMapped, directionSet);
                 }
             }
         }
@@ -83,23 +87,15 @@ public class Day6 {
     }
 
     public int patrolLab() {
-        if (labGrid.isEmpty() || bottomRightPosition == null || guard == null) {
+        if (labGrid.isEmpty() || bottomRightPosition == null || guard == null || !stuckInALoopPoints.isEmpty()) {
             throw new RuntimeException("Lab layout or guard location not known, unable to continue");
         }
 
-        int noOfStepsWithNoDistinctGuardPositionIncrease = 0;
         while (true) {
             moveOneStep(0);
             if (!labGrid.containsKey(guard.point)) {
                 // no longer in the lab
                 break;
-            }
-
-            if (!distinctGuardPositions.add(guard.point)) {
-                noOfStepsWithNoDistinctGuardPositionIncrease++;
-                if (noOfStepsWithNoDistinctGuardPositionIncrease > bottomRightPosition.x * bottomRightPosition.y) {
-                    throw new RuntimeException("Guard unlikely to ever leave the lab, stuck in a loop");
-                }
             }
         }
 
@@ -114,21 +110,78 @@ public class Day6 {
         else {
             directionsTried++;
         }
-        Point prospectiveNewPosition = null;
-        switch (guard.facing) {
-            case NORTH -> prospectiveNewPosition = new Point(guard.point.x, guard.point.y - 1);
-            case EAST -> prospectiveNewPosition = new Point(guard.point.x + 1, guard.point.y);
-            case SOUTH -> prospectiveNewPosition = new Point(guard.point.x, guard.point.y + 1);
-            case WEST -> prospectiveNewPosition = new Point(guard.point.x - 1, guard.point.y);
-        }
-        if (labGrid.containsKey(prospectiveNewPosition) && labGrid.get(prospectiveNewPosition)) {
+        Point prospectiveNewPosition = getPositionFromCurrent(guard.point, guard.facing);
+        if (labGrid.containsKey(prospectiveNewPosition) && labGrid.get(prospectiveNewPosition).charValue() == '#') {
             // Obstacle in path so rotate right and try again
+            labGrid.put(guard.point, '+');
             guard = new Guard(guard.point, Direction.getNextDirection(guard.facing));
             moveOneStep(directionsTried);
         } else {
-            // We can move but this might take us off the map
+            // We can move but could be off the map
+            Set<Direction> directionSet = distinctGuardPositions.getOrDefault(guard.point, new HashSet<>());
+            char c = labGrid.get(guard.point);
+            // if you turn right from guard existing position, have you been there before in that direction
+            // Or, looking right, if i keep going, do i find a point that has the same direction in it
+            // before i either hit an obstacle or the edge of the lab?
+            if (directionSet.contains(Direction.getNextDirection(guard.facing)) ||
+                    isStuckInLoopInDirection(guard.point, Direction.getNextDirection(guard.facing))) {
+                stuckInALoopPoints.add(prospectiveNewPosition);
+            }
+            if (c == '.' || c == '^') {
+                c = (guard.facing == Direction.NORTH || guard.facing == Direction.SOUTH) ? '|' : '-';
+            } else if (c == '|') {
+                if (guard.facing == Direction.EAST || guard.facing == Direction.WEST) {
+                    c = '+';
+                }
+            } else if (c == '-') {
+                if (guard.facing == Direction.NORTH || guard.facing == Direction.SOUTH) {
+                    c = '+';
+                }
+            }
+            labGrid.put(guard.point, c);
+            directionSet.add(guard.facing);
+            distinctGuardPositions.put(guard.point, directionSet);
             guard = new Guard(prospectiveNewPosition, guard.facing);
         }
+    }
+
+    /**
+     * This must be flawed as it gets the wrong answer for the puzzle input. I must be missing a condition. All I could
+     * think of is if it turned right at each # rather than dropping out, but that caused a stack overflow?
+     * @param point
+     * @param direction
+     * @return
+     */
+    private boolean isStuckInLoopInDirection(Point point, Direction direction) {
+        Point previousPosition = point;
+        Point positionFromCurrent = point;
+        while (true) {
+            previousPosition = positionFromCurrent;
+            positionFromCurrent = getPositionFromCurrent(positionFromCurrent, direction);
+            if (!labGrid.containsKey(positionFromCurrent)) {
+                // off the map
+                break;
+            }
+            if (labGrid.get(positionFromCurrent) == '#') {
+                // no match, hit an obstacle
+                break;
+            }
+            Set<Direction> directionSet = distinctGuardPositions.getOrDefault(positionFromCurrent, new HashSet<>());
+            if (directionSet.contains(direction)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private Point getPositionFromCurrent(Point current, Direction facing) {
+        return switch (facing) {
+            case NORTH -> new Point(current.x, current.y - 1);
+            case EAST -> new Point(current.x + 1, current.y);
+            case SOUTH -> new Point(current.x, current.y + 1);
+            case WEST -> new Point(current.x - 1, current.y);
+        };
     }
 
     Point getBottomRightPosition() {
@@ -139,11 +192,30 @@ public class Day6 {
         return guard;
     }
 
-    Set<Point> getDistinctGuardPositions() {
-        return distinctGuardPositions.stream().collect(Collectors.toUnmodifiableSet());
+    Set<Point> getDistinctGuardPositionKeys() {
+        return distinctGuardPositions.keySet();
     }
 
-    Map<Point, Boolean> getLabGrid() {
+    Set<Direction> getDistinctGuardPositionValue(Point point) {
+        return Set.copyOf(distinctGuardPositions.get(point));
+    }
+
+    Map<Point, Character> getLabGrid() {
         return Map.copyOf(labGrid);
+    }
+
+    String getLabGridString() {
+        StringBuilder sb = new StringBuilder();
+        for (int y = 0; y <= bottomRightPosition.y; y++) {
+            for (int x = 0; x <= bottomRightPosition.x; x++) {
+                sb.append(labGrid.get(new Point(x, y)));
+            }
+            sb.append('\n');
+        }
+        return sb.toString();
+    }
+
+    List<Point> getStuckInALoopPoints() {
+        return stuckInALoopPoints;
     }
 }
