@@ -86,7 +86,9 @@ public class Day7 {
     // a * b + c
     // a * b * c
     Operator[][] getOperatorCombinations(int noOfOperands) {
+        // How many elements should each array have
         int elems = noOfOperands - 1;
+        // how many arrays do we need to represent all combinations
         int arrs = (int) Math.pow(2, noOfOperands - 1);
 
         Operator[][] operators = new Operator[arrs][elems];
@@ -104,5 +106,21 @@ public class Day7 {
 
         return operators;
     }
+
+    // a + b (not 0-1, instead 0-2 (2 in base 3))
+    // a * b
+    // a || b (extra)
+
+    // a + b + c (not 0-3, instead 0-8 (22 in base 3))
+    // a + b * c
+    // a + b || c
+
+    // a * b * c
+    // a * b + c
+    // a * b || c
+
+    // a || b || c
+    // a || b + c
+    // a || b * c
 
 }
